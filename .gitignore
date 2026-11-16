@@ -1,0 +1,9 @@
+node_modules/
+frontend/dist/
+backend/target/
+*.class
+*.log
+.vite/
+.idea/
+.vscode/
+.DS_Store
