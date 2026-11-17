@@ -1,64 +1,42 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Tasks from './pages/Tasks';
+import Calendar from './pages/Calendar';
+import Reminders from './pages/Reminders';
+import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
+import Layout from './components/Layout';
+
+function PrivateRoute({ children }) {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" replace />;
+}
+
+function PublicRoute({ children }) {
+  const token = localStorage.getItem('token');
+  return token ? <Navigate to="/dashboard" replace /> : children;
+}
 
 export default function App() {
-  const [health, setHealth] = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const healthResponse = await fetch('/api/health');
-        const healthData = await healthResponse.json();
-        setHealth(healthData);
-
-        const customerResponse = await fetch('/api/customers');
-        const customerData = await customerResponse.json();
-        setCustomers(customerData.customers ?? []);
-      } catch (error) {
-        console.error('Error fetching app data:', error);
-        setHealth({ status: 'error', service: 'frontend fallback' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
   return (
-    <main className="page-shell">
-      <section className="hero-card">
-        <p className="eyebrow">Project starter</p>
-        <h1>Task Remainder</h1>
-        <p className="subtitle">
-          React frontend connected to a plain Java backend with MySQL support.
-        </p>
-
-        <div className="status-box">
-          <span className="label">Backend status</span>
-          {loading ? <strong>Checking...</strong> : <strong>{health?.status ?? 'unknown'}</strong>}
-        </div>
-      </section>
-
-      <section className="panel">
-        <h2>Customer list</h2>
-        {customers.length === 0 ? (
-          <p>No customer data yet.</p>
-        ) : (
-          <ul className="customer-list">
-            {customers.map((customer) => (
-              <li key={customer.id} className="customer-item">
-                <div>
-                  <strong>{customer.name}</strong>
-                  <span>{customer.email}</span>
-                </div>
-                <span className={`pill ${customer.status}`}>{customer.status}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard"     element={<Dashboard />} />
+          <Route path="tasks"         element={<Tasks />} />
+          <Route path="calendar"      element={<Calendar />} />
+          <Route path="reminders"     element={<Reminders />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="profile"       element={<Profile />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
